@@ -1,0 +1,60 @@
+{
+  "test_evaluation": {
+    "model_a": {
+      "accuracy": 46.15,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "roc_auc": 0.1429,
+      "false_positive_rate": 0.0,
+      "false_negative_rate": 100.0
+    },
+    "model_b": {
+      "accuracy": 53.85,
+      "precision": 53.85,
+      "recall": 100.0,
+      "f1_score": 70.0,
+      "roc_auc": 0.9286,
+      "false_positive_rate": 100.0,
+      "false_negative_rate": 0.0
+    },
+    "delta": {
+      "accuracy_delta": 7.7,
+      "precision_delta": 53.85,
+      "recall_delta": 100.0,
+      "f1_score_delta": 70.0,
+      "roc_auc_delta": 0.7857,
+      "fpr_reduction": -100.0,
+      "fnr_reduction": 100.0,
+      "latency_overhead_ms": -345.2
+    }
+  },
+  "confusion_matrices": {
+    "model_a": {
+      "true_negatives_real": 6,
+      "false_positives_fake": 0,
+      "false_negatives_real": 7,
+      "true_positives_fake": 0
+    },
+    "model_b": {
+      "true_negatives_real": 0,
+      "false_positives_fake": 6,
+      "false_negatives_real": 0,
+      "true_positives_fake": 7
+    }
+  },
+  "efficiency": {
+    "model_a": {
+      "avg_latency_ms": 389.7,
+      "std_latency_ms": 1208.69,
+      "throughput_samples_per_sec": 2.6,
+      "parameter_count": 916897
+    },
+    "model_b": {
+      "avg_latency_ms": 44.5,
+      "std_latency_ms": 26.37,
+      "throughput_samples_per_sec": 22.5,
+      "parameter_count": 3030849
+    }
+  }
+}

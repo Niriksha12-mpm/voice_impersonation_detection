@@ -1,0 +1,16 @@
+{
+  "accuracy": 50.0,
+  "precision": 50.0,
+  "recall": 100.0,
+  "f1_score": 66.67,
+  "roc_auc": 0.6415,
+  "false_positive_rate": 100.0,
+  "false_negative_rate": 0.0,
+  "latency_ms": 3.77,
+  "confusion_matrix": {
+    "tn": 0,
+    "fp": 250,
+    "fn": 0,
+    "tp": 250
+  }
+}
