@@ -1,7 +1,7 @@
 """
 Inference Engine for Voice Impersonation Detection.
 Validates uploaded files, preprocesses audio, executes inference with
-Model A (Pretrained) or Model B (Fine-Tuned), and computes diagnostics.
+Model A (Pretrained Baseline) or Model B (Fine-Tuned Improved), and computes diagnostics.
 """
 
 import io
@@ -12,7 +12,7 @@ import librosa
 import torch
 from typing import Dict, Any, Tuple
 from models.architecture import DeepfakeAudioClassifier, load_classifier
-from models.feature_extractor import MelSpectrogramExtractor
+from models.feature_extractor import AudioFeatureExtractor
 from dataset.preprocessor import AudioPreprocessor
 
 
@@ -20,22 +20,23 @@ class InferenceEngine:
     def __init__(
         self,
         pretrained_weights: str = "models/saved/pretrained_model_a.pt",
-        fine_tuned_weights: str = "models/saved/fine_tuned_model_b_lakhs.pt" if os.path.exists("models/saved/fine_tuned_model_b_lakhs.pt") else "models/saved/fine_tuned_model_b.pt",
+        fine_tuned_weights: str = "models/saved/fine_tuned_model_b.pt" if os.path.exists("models/saved/fine_tuned_model_b.pt") else "models/saved/fine_tuned_model_b_lakhs.pt",
         device: str = "cpu"
     ):
         self.device = torch.device(device)
         self.preprocessor = AudioPreprocessor(target_sr=16000, target_duration=3.0)
-        self.extractor = MelSpectrogramExtractor()
+        self.extractor = AudioFeatureExtractor(sr=16000, n_mels=64, n_fft=512, hop_length=256)
 
-        # Load Model A (Pretrained)
+        # Load Model A (Pretrained Baseline)
         self.model_a = load_classifier(pretrained_weights, map_location=device)
         self.model_a.to(self.device).eval()
 
-        # Load Model B (Fine-Tuned)
+        # Load Model B (Fine-Tuned Improved)
         self.model_b = load_classifier(fine_tuned_weights, map_location=device)
         self.model_b.to(self.device).eval()
 
-        print("[InferenceEngine] Initialized Model A and Model B successfully.")
+        thresh_b = getattr(self.model_b, "decision_threshold", 0.5)
+        print(f"[InferenceEngine] Initialized Model A and Model B successfully. Model B decision threshold: {thresh_b:.4f}")
 
     def decode_and_validate(self, audio_bytes: bytes, filename: str) -> Tuple[np.ndarray, int, Dict[str, Any]]:
         """
@@ -51,8 +52,6 @@ class InferenceEngine:
             raise ValueError("The uploaded file is empty or corrupted.")
 
         # Decode via soundfile or librosa BytesIO
-        y = None
-        sr = None
         try:
             buffer = io.BytesIO(audio_bytes)
             y, sr = sf.read(buffer, dtype="float32")
@@ -97,12 +96,14 @@ class InferenceEngine:
         # Select model
         if model_type == "pretrained":
             active_model = self.model_a
-            active_model_name = "Model A (Pretrained Model)"
-            model_desc = "Baseline audio deepfake detector evaluated out-of-the-box without dataset fine-tuning."
+            active_model_name = "Model A (Pretrained Baseline)"
+            model_desc = "Baseline audio deepfake detector evaluated out-of-the-box without domain fine-tuning."
+            decision_threshold = 0.5
         else:
             active_model = self.model_b
-            active_model_name = "Model B (Lakhs-Trained CNN-BiLSTM)"
-            model_desc = "Fine-tuned CNN-BiLSTM hybrid deepfake detector trained on 104,800+ WaveFake & ASVspoof utterances via Google Colab."
+            active_model_name = "Model B (Improved Four-Block CNN-BiLSTM)"
+            model_desc = "Improved Four-Block CNN-BiLSTM classifier with synchronized 64-band Log-Mel preprocessing and calibrated threshold."
+            decision_threshold = getattr(self.model_b, "decision_threshold", 0.5162)
 
         # Run inference across segments (average probability for multi-segment files)
         seg_probs = []
@@ -115,8 +116,8 @@ class InferenceEngine:
 
         avg_prob_fake = float(np.mean(seg_probs))
 
-        # Binary label: ONLY REAL or FAKE
-        if avg_prob_fake >= 0.5:
+        # Binary label: STRICTLY REAL or FAKE based on calibrated threshold
+        if avg_prob_fake >= decision_threshold:
             label = "FAKE"
             confidence = avg_prob_fake
         else:
@@ -137,9 +138,10 @@ class InferenceEngine:
                 "confidence_percent": f"{round(confidence * 100.0, 1)}%",
                 "probability_fake": round(avg_prob_fake, 4),
                 "probability_real": round(1.0 - avg_prob_fake, 4),
+                "decision_threshold": round(decision_threshold, 4),
                 "model_used": active_model_name,
                 "model_description": model_desc,
-                "confidence_disclaimer": "Confidence is an algorithmic estimate based on acoustic feature analysis and is not an absolute guarantee of correctness."
+                "confidence_disclaimer": "Voice deepfake detection results are probabilistic acoustic assessments based on Mel-spectrogram artifact analysis and should be evaluated alongside verified metadata."
             },
             "audio_metadata": {
                 "filename": filename,

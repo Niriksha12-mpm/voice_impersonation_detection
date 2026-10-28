@@ -1,0 +1,92 @@
+{
+  "project": "VoiceGuard AI - Four-Block 2D CNN Spectrogram Classifier",
+  "version": "2.0.0",
+  "timestamp": "2026-10-28T17:45:00",
+  "reproducibility_seed": 42,
+  "system_environment": {
+    "operating_system": "Windows 11 / Windows Server",
+    "python_version": "3.14.3",
+    "torch_version": "2.13.0",
+    "librosa_version": "1.0.0",
+    "soundfile_version": "0.14.0",
+    "scikit_learn_version": "1.9.0"
+  },
+  "model_architecture": {
+    "class_name": "DeepfakeCNNBiLSTMClassifier",
+    "block_1": "Conv2d(1, 32, kernel_size=3, padding=1) -> BatchNorm2d(32) -> ReLU -> MaxPool2d(2, 2)",
+    "block_2": "Conv2d(32, 64, kernel_size=3, padding=1) -> BatchNorm2d(64) -> ReLU -> MaxPool2d(2, 2)",
+    "block_3": "Conv2d(64, 128, kernel_size=3, padding=1) -> BatchNorm2d(128) -> ReLU -> MaxPool2d(2, 2)",
+    "block_4": "Conv2d(128, 256, kernel_size=3, padding=1) -> BatchNorm2d(256) -> ReLU -> AdaptiveAvgPool2d((8, None))",
+    "channel_progression": [1, 32, 64, 128, 256],
+    "temporal_preservation": "AdaptiveAvgPool2d preserves full time_frames axis (None) while standardizing frequency to 8 bins",
+    "sequence_encoder": "LSTM(input_size=2048, hidden_size=128, num_layers=2, bidirectional=True, batch_first=True, dropout=0.35)",
+    "pooling": "torch.mean(lstm_out, dim=1) over temporal sequence",
+    "head": "Dropout(0.35) -> Linear(256, 64) -> ReLU -> Dropout(0.175) -> Linear(64, 1)",
+    "output": "Raw unconstrained scalar logit for BCEWithLogitsLoss",
+    "total_parameters": 2709889
+  },
+  "feature_preprocessing": {
+    "sample_rate_hz": 16000,
+    "channels": "1 (Mono downmixed)",
+    "target_clip_duration_s": 3.0,
+    "target_samples": 48000,
+    "mel_bands": 64,
+    "fft_window_size": 512,
+    "hop_length": 256,
+    "time_frames_per_3s": 188,
+    "frequency_range_hz": [20.0, 8000.0],
+    "power": 2.0,
+    "log_transform": "natural_log(clamp(mel, min=1e-5))",
+    "normalization": "per_clip_zero_mean_unit_variance",
+    "synchronized_across": ["training", "validation", "evaluation", "fastapi_inference"]
+  },
+  "dataset_splits": {
+    "splitting_policy": "GroupKFold by parent_file and speaker_id (Zero recording/speaker leakage)",
+    "train_split": "data/splits/train_split_manifest.json (34 samples: 21 Real, 13 Fake across 10 parent recordings)",
+    "validation_split": "data/splits/val_manifest.json (6 samples: 3 Real, 3 Fake across 3 parent recordings)",
+    "held_out_test_split": "data/splits/test_manifest.json (13 samples: 6 Real, 7 Fake across 3 parent recordings - LOCKED)",
+    "cross_dataset_split": "data/splits/cross_dataset_manifest.json (2 samples: 0 Real, 2 Fake from zo9999 ElevenLabs)"
+  },
+  "training_hyperparameters": {
+    "optimizer": "AdamW",
+    "initial_learning_rate": 0.0002,
+    "weight_decay": 0.0001,
+    "lr_scheduler": "CosineAnnealingLR(T_max=15, eta_min=1e-5)",
+    "loss_function": "BCEWithLogitsLoss(pos_weight=1.615)",
+    "batch_size": 8,
+    "epochs": 15,
+    "gradient_clipping_norm": 1.0,
+    "augmentations": [
+        "Time roll (+/- 0.1s)",
+        "Gain amplitude scaling (0.85 to 1.15, +/- 1.5 dB)",
+        "Additive Gaussian noise (SNR ~ 35 dB, p=0.5)"
+    ],
+    "early_stopping_metric": "validation_loss",
+    "best_checkpoint_epoch": 5,
+    "best_val_loss": 0.8806,
+    "validation_calibrated_threshold": 0.5162
+  },
+  "evaluation_results": {
+    "held_out_test_samples": 13,
+    "model_a_pretrained_accuracy_percent": 46.15,
+    "model_b_colab_baseline_accuracy_percent": 53.85,
+    "model_b_improved_accuracy_percent": 76.92,
+    "model_b_improved_balanced_accuracy_percent": 76.19,
+    "model_b_improved_f1_percent": 80.00,
+    "model_b_improved_precision_percent": 75.00,
+    "model_b_improved_recall_percent": 85.71,
+    "model_b_improved_roc_auc": 0.7143,
+    "accuracy_delta_percentage_points": 23.07,
+    "accuracy_relative_change_percent": 42.84,
+    "changed_predictions": "5 of 13 samples corrected from FAKE to REAL",
+    "target_minimum_percentage_points": 0.1,
+    "target_status": "EXCEEDED"
+  },
+  "reproducibility_commands": {
+    "run_unit_tests": "python -m pytest tests/",
+    "run_training": "python -m models.train",
+    "run_evaluation": "python -m models.evaluate",
+    "generate_plots": "python scripts/generate_plots.py",
+    "launch_backend_api": "python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000"
+  }
+}

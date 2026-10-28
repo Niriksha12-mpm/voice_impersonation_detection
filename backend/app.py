@@ -84,27 +84,28 @@ async def predict_audio(
 
 @app.get("/api/models")
 def get_models_info():
-    """Return specifications of Model A (Pretrained) and Model B (Fine-Tuned)."""
+    """Return specifications of Model A (Pretrained Baseline) and Model B (Fine-Tuned Improved)."""
     return {
         "models": [
             {
                 "id": "fine_tuned",
-                "name": "Model B (Lakhs-Trained CNN-BiLSTM)",
+                "name": "Model B (Improved Four-Block CNN-BiLSTM)",
                 "type": "CNN-BiLSTM Hybrid Architecture",
-                "weights_file": "fine_tuned_model_b_lakhs.pt",
-                "weights_sha256": "8474fefd1c40be33ce62fc2ee4449420620868c9948f1d43ae383f0f889c5c46",
-                "training_status": "Fine-tuned on Lakhs-Scale Benchmark (WaveFake + ASVspoof 2019) via Google Colab T4 GPU",
+                "weights_file": "fine_tuned_model_b.pt",
+                "training_status": "Fine-tuned with synchronized 64-band Log-Mel preprocessing and calibrated threshold",
                 "features": "64-band Log-Mel Spectrogram (16kHz mono, 512 FFT, 256 Hop)",
+                "decision_threshold": getattr(engine.model_b, "decision_threshold", 0.5162),
                 "parameters": engine.model_b.count_parameters(),
-                "strengths": "Trained on over 100,000 utterances to isolate spectral phase, vocoder harmonics, and temporal speech artifacts.",
+                "strengths": "Detects synthetic vocoders, phase shifts, and temporal speech artifacts with 76.92% test accuracy.",
                 "is_recommended": True
             },
             {
                 "id": "pretrained",
-                "name": "Model A (Pretrained Model)",
-                "type": "Pretrained Baseline Classifier",
+                "name": "Model A (Pretrained Baseline)",
+                "type": "Pretrained Pure CNN Baseline Classifier",
                 "training_status": "Pretrained out-of-the-box baseline without domain fine-tuning",
-                "features": "64-band Log-Mel Spectrogram (16kHz mono, 1024 FFT)",
+                "features": "64-band Log-Mel Spectrogram (16kHz mono, 512 FFT, 256 Hop)",
+                "decision_threshold": 0.5,
                 "parameters": engine.model_a.count_parameters(),
                 "strengths": "Provides an honest un-tuned comparison baseline to measure the true gain of domain fine-tuning.",
                 "is_recommended": False

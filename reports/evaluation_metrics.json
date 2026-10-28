@@ -1,59 +1,103 @@
 {
   "test_evaluation": {
-    "model_a": {
+    "model_a_pretrained": {
       "accuracy": 46.15,
+      "balanced_accuracy": 50.0,
+      "accuracy_95ci": [
+        15.38,
+        69.23
+      ],
       "precision": 0.0,
       "recall": 0.0,
       "f1_score": 0.0,
-      "roc_auc": 0.1429,
+      "roc_auc": 0.119,
       "false_positive_rate": 0.0,
-      "false_negative_rate": 100.0
+      "false_negative_rate": 100.0,
+      "equal_error_rate": 92.86
     },
-    "model_b": {
+    "model_b_baseline": {
       "accuracy": 53.85,
+      "balanced_accuracy": 50.0,
+      "accuracy_95ci": [
+        30.77,
+        84.62
+      ],
       "precision": 53.85,
       "recall": 100.0,
       "f1_score": 70.0,
-      "roc_auc": 0.9286,
+      "roc_auc": 0.9762,
       "false_positive_rate": 100.0,
-      "false_negative_rate": 0.0
+      "false_negative_rate": 0.0,
+      "equal_error_rate": 15.48
+    },
+    "model_b_improved": {
+      "accuracy": 76.92,
+      "balanced_accuracy": 76.19,
+      "accuracy_95ci": [
+        53.85,
+        100.0
+      ],
+      "precision": 75.0,
+      "recall": 85.71,
+      "f1_score": 80.0,
+      "roc_auc": 0.7143,
+      "false_positive_rate": 33.33,
+      "false_negative_rate": 14.29,
+      "equal_error_rate": 16.67
     },
     "delta": {
-      "accuracy_delta": 7.7,
-      "precision_delta": 53.85,
-      "recall_delta": 100.0,
-      "f1_score_delta": 70.0,
-      "roc_auc_delta": 0.7857,
-      "fpr_reduction": -100.0,
-      "fnr_reduction": 100.0,
-      "latency_overhead_ms": -345.2
+      "baseline_model": "Model B (Colab Baseline)",
+      "improved_model": "Model B (Improved Fine-Tuned)",
+      "accuracy_baseline": 53.85,
+      "accuracy_improved": 76.92,
+      "accuracy_delta_percentage_points": 23.07,
+      "accuracy_relative_change_percent": 42.84,
+      "changed_predictions_count": 5,
+      "precision_delta": 21.15,
+      "recall_delta": -14.29,
+      "f1_score_delta": 10.0,
+      "fpr_reduction": 66.67,
+      "fnr_reduction": -14.29,
+      "meets_target_improvement": true
     }
   },
   "confusion_matrices": {
-    "model_a": {
+    "model_a_pretrained": {
       "true_negatives_real": 6,
       "false_positives_fake": 0,
       "false_negatives_real": 7,
       "true_positives_fake": 0
     },
-    "model_b": {
+    "model_b_baseline": {
       "true_negatives_real": 0,
       "false_positives_fake": 6,
       "false_negatives_real": 0,
       "true_positives_fake": 7
+    },
+    "model_b_improved": {
+      "true_negatives_real": 4,
+      "false_positives_fake": 2,
+      "false_negatives_real": 1,
+      "true_positives_fake": 6
     }
   },
   "efficiency": {
-    "model_a": {
-      "avg_latency_ms": 389.7,
-      "std_latency_ms": 1208.69,
-      "throughput_samples_per_sec": 2.6,
+    "model_a_pretrained": {
+      "avg_latency_ms": 395.86,
+      "std_latency_ms": 1186.66,
+      "throughput_samples_per_sec": 2.5,
       "parameter_count": 916897
     },
-    "model_b": {
-      "avg_latency_ms": 44.5,
-      "std_latency_ms": 26.37,
-      "throughput_samples_per_sec": 22.5,
+    "model_b_baseline": {
+      "avg_latency_ms": 71.53,
+      "std_latency_ms": 29.44,
+      "throughput_samples_per_sec": 14.0,
+      "parameter_count": 3030849
+    },
+    "model_b_improved": {
+      "avg_latency_ms": 42.85,
+      "std_latency_ms": 7.26,
+      "throughput_samples_per_sec": 23.3,
       "parameter_count": 3030849
     }
   }

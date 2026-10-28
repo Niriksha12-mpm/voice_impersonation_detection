@@ -1,0 +1,4 @@
+Model,Threshold,Accuracy (%),Balanced Accuracy (%),95% CI Lower,95% CI Upper,Precision (%),Recall (%),F1-Score (%),ROC-AUC,FPR (%),FNR (%),EER (%),TN,FP,FN,TP,Avg Latency (ms),Throughput (samples/s),Parameters
+Model A (Pretrained Baseline),0.5,46.15,50.0,15.38,69.23,0.0,0.0,0.0,0.119,0.0,100.0,92.86,6,0,7,0,395.86,2.5,916897
+Model B (Colab Baseline),0.5,53.85,50.0,30.77,84.62,53.85,100.0,70.0,0.9762,100.0,0.0,15.48,0,6,0,7,71.53,14.0,3030849
+Model B (Improved Fine-Tuned),0.5162,76.92,76.19,53.85,100.0,75.0,85.71,80.0,0.7143,33.33,14.29,16.67,4,2,1,6,42.85,23.3,3030849
